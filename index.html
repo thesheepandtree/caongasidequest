@@ -381,6 +381,10 @@
   </div>
 
   <script>
+    // ⚠️ DÁN LINK WEB APP APPS SCRIPT CỦA BẠN VÀO ĐÂY (kết thúc bằng /exec)
+    // Lấy link này ở Apps Script: Deploy > Manage deployments > copy "Web app URL"
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwe8apjuIFHH3ahrEgkQVWa-qUe67T_rFY2Dv996edyvxzYgLqwyr_Yuj4624rUAZ9l/exec';
+
     const NAME_STORAGE_KEY = 'caonga_vitamin_name';
 
     function layVitamin() {
@@ -389,8 +393,9 @@
       btn.disabled = true;
       btn.innerHTML = 'Đang lắc vitamin<span class="loading-dots"></span>';
 
-      google.script.run
-        .withSuccessHandler(function (data) {
+      fetch(API_URL + '?action=vitamin')
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
           document.getElementById('quoteText').innerText = data.quote || 'Hôm nay tạm hết quote, mai quay lại nha 🙈';
           document.getElementById('foodText').innerText = data.food || '???';
           document.getElementById('colorText').innerText = data.color || '???';
@@ -399,12 +404,11 @@
           btn.disabled = false;
           btn.innerHTML = '🎲 Rút vitamin khác';
         })
-        .withFailureHandler(function (err) {
-          alert('Lỗi rồi: ' + err.message);
+        .catch(function (err) {
+          alert('Lỗi rồi: ' + err.message + ' (kiểm tra lại API_URL và quyền truy cập Web app)');
           btn.disabled = false;
           btn.innerHTML = '🎲 Rút vitamin hôm nay';
-        })
-        .getVitamin();
+        });
     }
 
     function renderProgress(status) {
@@ -465,8 +469,10 @@
       const originalText = btn.innerText;
       btn.innerText = 'Đang lưu điểm danh...';
 
-      google.script.run
-        .withSuccessHandler(function (status) {
+      fetch(API_URL + '?action=checkin&name=' + encodeURIComponent(name))
+        .then(function (res) { return res.json(); })
+        .then(function (status) {
+          if (status.error) throw new Error(status.error);
           renderProgress(status);
           showInfoMsg('Đã lưu điểm danh cho ' + name + '! 🎉');
           if (status.count < status.goal) {
@@ -474,12 +480,11 @@
             btn.innerText = originalText;
           }
         })
-        .withFailureHandler(function (err) {
+        .catch(function (err) {
           alert('Lỗi rồi: ' + err.message);
           btn.disabled = false;
           btn.innerText = originalText;
-        })
-        .diemDanh(name);
+        });
     }
 
     // Tải tiến độ + tự điền lại tên đã lưu khi mở trang
@@ -489,12 +494,12 @@
         document.getElementById('nameInput').value = savedName;
       }
 
-      google.script.run
-        .withSuccessHandler(renderProgress)
-        .withFailureHandler(function (err) {
+      fetch(API_URL + '?action=status')
+        .then(function (res) { return res.json(); })
+        .then(renderProgress)
+        .catch(function (err) {
           document.getElementById('progressLabel').innerText = 'Không tải được tiến độ 😢';
-        })
-        .getCheckinStatus();
+        });
     });
   </script>
 
