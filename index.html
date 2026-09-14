@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mỗi ngày 1 vitamin Vô TRI</title>
+  <title>Mỗi ngày 1 vitamin Cao Nga</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
@@ -319,12 +319,76 @@
       60% { content: '..'; }
       80%, 100% { content: '...'; }
     }
+
+    #gameCanvas {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      background: linear-gradient(180deg, #fff9e8, #ffe3cf);
+      border-radius: 16px;
+      display: block;
+      margin-bottom: 14px;
+      touch-action: manipulation;
+      cursor: pointer;
+    }
+
+    .game-hint {
+      font-size: 0.8rem;
+      opacity: 0.65;
+      margin: -8px 0 14px;
+    }
+
+    .game-over-box {
+      display: none;
+      background: rgba(255,255,255,0.75);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 14px;
+      text-align: left;
+    }
+
+    .game-over-box.show {
+      display: block;
+      animation: popIn 0.35s ease;
+    }
+
+    .game-over-box p {
+      margin: 0 0 12px;
+      font-family: 'Baloo 2', cursive;
+    }
+
+    .leaderboard {
+      text-align: left;
+      margin-top: 20px;
+    }
+
+    .leaderboard .board-title {
+      font-family: 'Baloo 2', cursive;
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+    }
+
+    .leaderboard-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.7);
+      border-radius: 12px;
+      padding: 8px 14px;
+      margin-bottom: 6px;
+      font-family: 'Baloo 2', cursive;
+      font-size: 0.92rem;
+    }
+
+    .leaderboard-row .rank-1 { color: #d69e00; }
+    .leaderboard-row .rank-2 { color: #8a8a8a; }
+    .leaderboard-row .rank-3 { color: #b5651d; }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h1>🌿 Mỗi ngày 1 vitamin vÔ tRI</h1>
+    <h1>🌿 Mỗi ngày 1 vitamin Cao Nga</h1>
     <p>Vì gì rùi cũm sẽ qua, nên là chả tội gì không lấy 1 random quote mỗi ngày.</p>
   </div>
 
@@ -380,10 +444,34 @@
     <div class="footer-note">Thanh tiến độ tính chung cho tất cả mọi người, còn danh sách bên trên là ai đã điểm danh trong ngày hôm nay 💛</div>
   </div>
 
+  <div class="card">
+    <div class="section-title">🏃 Né deadline, vượt sếp mắng</div>
+    <p class="section-desc">Nhấn phím Cách (hoặc chạm/click vào khung game) để nhảy qua chướng ngại vật. Càng sống lâu điểm càng cao, càng lâu thì càng nhanh, cẩn thận đó!</p>
+
+    <canvas id="gameCanvas" width="600" height="200"></canvas>
+    <div class="game-hint" id="gameHint">Bấm nút bên dưới để bắt đầu, sau đó nhấn Cách hoặc chạm màn hình để nhảy.</div>
+
+    <button class="btn btn-main" id="gameStartBtn">▶️ Bắt đầu chơi</button>
+
+    <div class="game-over-box" id="gameOverBox">
+      <p>💥 Bạn đã "gục" ở điểm <strong id="finalScoreText">0</strong>!</p>
+      <div class="name-input-wrap">
+        <label for="gameNameInput">Tên để lưu vào bảng xếp hạng</label>
+        <input type="text" id="gameNameInput" placeholder="Ví dụ: Haley" maxlength="40">
+      </div>
+      <button class="btn btn-checkin" onclick="submitGameScore()">💾 Lưu điểm vào bảng xếp hạng</button>
+    </div>
+
+    <div class="leaderboard">
+      <div class="board-title">🏆 Bảng xếp hạng cao nhất</div>
+      <div id="leaderboardList"></div>
+    </div>
+  </div>
+
   <script>
     // ⚠️ DÁN LINK WEB APP APPS SCRIPT CỦA BẠN VÀO ĐÂY (kết thúc bằng /exec)
     // Lấy link này ở Apps Script: Deploy > Manage deployments > copy "Web app URL"
-    const API_URL = 'https://script.google.com/macros/s/AKfycby9CUaPDzjxeERm-sDBPv6hfQD9VrWxuZbSuq81XvYFJPh68fNDbtAIytm7oXDFvQDp/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycby1y_G6wnbdh-YjBVaOoCDebOKD7s1hEPi1UD8ZQDmk6bldH4to7TrDH-YwKSjFsbix/exec';
 
     const NAME_STORAGE_KEY = 'caonga_vitamin_name';
 
@@ -492,6 +580,8 @@
       const savedName = localStorage.getItem(NAME_STORAGE_KEY);
       if (savedName) {
         document.getElementById('nameInput').value = savedName;
+        const gameNameInput = document.getElementById('gameNameInput');
+        if (gameNameInput) gameNameInput.value = savedName;
       }
 
       fetch(API_URL + '?action=status')
@@ -500,7 +590,196 @@
         .catch(function (err) {
           document.getElementById('progressLabel').innerText = 'Không tải được tiến độ 😢';
         });
+
+      loadLeaderboard();
     });
+
+    /* ============================================
+     * 🏃 GAME NÉ DEADLINE
+     * ============================================ */
+    (function () {
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width;
+      const H = canvas.height;
+      const groundY = H - 30;
+
+      const OBSTACLE_TYPES = [
+        { emoji: '😤' },
+        { emoji: '📄' },
+        { emoji: '☁️' },
+        { emoji: '📧' }
+      ];
+
+      let player, obstacles, score, speed, isPlaying, animationId, spawnTimer;
+
+      function resetGame() {
+        player = { x: 40, y: groundY - 30, w: 30, h: 30, vy: 0, jumping: false };
+        obstacles = [];
+        score = 0;
+        speed = 4.5;
+        spawnTimer = 0;
+        isPlaying = true;
+        document.getElementById('gameOverBox').classList.remove('show');
+        document.getElementById('gameHint').innerText = 'Nhấn phím Cách hoặc chạm màn hình để nhảy!';
+      }
+
+      function jump() {
+        if (!isPlaying) return;
+        if (!player.jumping) {
+          player.vy = -11.5;
+          player.jumping = true;
+        }
+      }
+
+      function spawnObstacle() {
+        const type = OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
+        obstacles.push({ x: W, y: groundY - 28, w: 28, h: 28, type: type });
+      }
+
+      function update() {
+        player.vy += 0.6;
+        player.y += player.vy;
+        if (player.y >= groundY - player.h) {
+          player.y = groundY - player.h;
+          player.vy = 0;
+          player.jumping = false;
+        }
+
+        spawnTimer++;
+        const spawnInterval = Math.max(70 - Math.floor(score / 15), 38);
+        if (spawnTimer > spawnInterval) {
+          spawnObstacle();
+          spawnTimer = 0;
+        }
+
+        obstacles.forEach(function (o) { o.x -= speed; });
+        obstacles = obstacles.filter(function (o) { return o.x + o.w > 0; });
+
+        for (let i = 0; i < obstacles.length; i++) {
+          const o = obstacles[i];
+          if (player.x < o.x + o.w && player.x + player.w > o.x &&
+              player.y < o.y + o.h && player.y + player.h > o.y) {
+            endGame();
+            return;
+          }
+        }
+
+        score += 1;
+        speed = 4.5 + Math.floor(score / 150) * 0.6;
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        ctx.strokeStyle = '#4a3b32';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, groundY);
+        ctx.lineTo(W, groundY);
+        ctx.stroke();
+
+        ctx.font = '28px sans-serif';
+        ctx.fillText('🏃', player.x, player.y + player.h);
+
+        obstacles.forEach(function (o) {
+          ctx.fillText(o.type.emoji, o.x, o.y + o.h);
+        });
+
+        ctx.fillStyle = '#4a3b32';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText('Điểm: ' + score, W - 110, 26);
+      }
+
+      function loop() {
+        if (!isPlaying) return;
+        update();
+        if (!isPlaying) return;
+        draw();
+        animationId = requestAnimationFrame(loop);
+      }
+
+      function endGame() {
+        isPlaying = false;
+        cancelAnimationFrame(animationId);
+        document.getElementById('finalScoreText').innerText = score;
+        document.getElementById('gameOverBox').classList.add('show');
+        document.getElementById('gameHint').innerText = 'Bấm "Bắt đầu chơi" để thử lại nhé!';
+        document.getElementById('gameStartBtn').innerText = '🔁 Chơi lại';
+      }
+
+      function startGame() {
+        resetGame();
+        draw();
+        loop();
+      }
+
+      document.getElementById('gameStartBtn').addEventListener('click', startGame);
+
+      window.addEventListener('keydown', function (e) {
+        if (e.code === 'Space') {
+          e.preventDefault();
+          jump();
+        }
+      });
+      canvas.addEventListener('mousedown', jump);
+      canvas.addEventListener('touchstart', function (e) {
+        e.preventDefault();
+        jump();
+      });
+
+      // vẽ sẵn 1 khung tĩnh trước khi bấm bắt đầu
+      player = { x: 40, y: groundY - 30, w: 30, h: 30 };
+      obstacles = [];
+      score = 0;
+      draw();
+
+      window.submitGameScore = function () {
+        const nameInput = document.getElementById('gameNameInput');
+        const name = nameInput.value.trim();
+        if (!name) {
+          alert('Điền tên bạn vào trước đã nha!');
+          nameInput.focus();
+          return;
+        }
+        localStorage.setItem(NAME_STORAGE_KEY, name);
+
+        fetch(API_URL + '?action=submitScore&name=' + encodeURIComponent(name) + '&score=' + score)
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            if (data.error) throw new Error(data.error);
+            renderLeaderboard(data.leaderboard || []);
+            alert('Đã lưu điểm ' + score + ' cho ' + name + '! 🎉');
+          })
+          .catch(function (err) {
+            alert('Lỗi rồi: ' + err.message);
+          });
+      };
+
+      window.loadLeaderboard = function () {
+        fetch(API_URL + '?action=leaderboard')
+          .then(function (res) { return res.json(); })
+          .then(function (data) { renderLeaderboard(data.leaderboard || []); })
+          .catch(function () {});
+      };
+
+      function renderLeaderboard(list) {
+        const el = document.getElementById('leaderboardList');
+        el.innerHTML = '';
+        if (!list.length) {
+          el.innerHTML = '<div class="today-empty">Chưa ai chơi cả, làm người đầu tiên lập kỷ lục đi!</div>';
+          return;
+        }
+        const medals = ['🥇', '🥈', '🥉'];
+        list.forEach(function (item, idx) {
+          const row = document.createElement('div');
+          row.className = 'leaderboard-row';
+          const rankLabel = medals[idx] || ('#' + (idx + 1));
+          row.innerHTML = '<span>' + rankLabel + ' ' + item.name + '</span><span>' + item.score + ' điểm</span>';
+          el.appendChild(row);
+        });
+      }
+    })();
   </script>
 
 </body>
