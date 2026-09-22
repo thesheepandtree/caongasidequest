@@ -485,6 +485,7 @@
       fetch(API_URL + '?action=vitamin')
         .then(function (res) { return res.json(); })
         .then(function (data) {
+          if (data.error) throw new Error(data.error);
           document.getElementById('quoteText').innerText = data.quote || 'Hôm nay tạm hết quote, mai quay lại nha 🙈';
           document.getElementById('foodText').innerText = data.food || '???';
           document.getElementById('colorText').innerText = data.color || '???';
